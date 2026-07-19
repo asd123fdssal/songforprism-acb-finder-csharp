@@ -54,6 +54,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $tag = "${{ github.event.release.tag_name || inputs.tag }}"
-          gh release upload $tag artifacts/songforprism-acb-finder-csharp-win-x64.zip `
-          --repo ${{ github.repository }}
-          --clobber
+          gh release upload $tag artifacts/songforprism-acb-finder-csharp-win-x64.zip --repo ${{ github.repository }} --clobber
