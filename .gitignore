@@ -1,0 +1,16 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+
+# Local application output
+process/
+
+# Visual Studio and user settings
+.vs/
+*.user
+*.suo
+
+# Internal planning document (not published)
+PLAN.md
+.agents/
+.claude/
