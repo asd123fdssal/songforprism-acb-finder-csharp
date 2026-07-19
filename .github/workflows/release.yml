@@ -43,7 +43,6 @@ jobs:
           -p:PublishSingleFile=true
           -p:IncludeNativeLibrariesForSelfExtract=true
           --output artifacts/publish
-          --no-restore
 
       - name: Create release archive
         shell: pwsh
