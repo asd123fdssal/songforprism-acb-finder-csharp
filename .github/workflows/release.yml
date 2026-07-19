@@ -1,9 +1,14 @@
 name: Create Release
 
 on:
-  push:
-    tags:
-      - "v*"
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to build and upload
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -15,6 +20,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
 
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
@@ -43,11 +50,11 @@ jobs:
         run: |
           Compress-Archive -Path artifacts/publish/* -DestinationPath artifacts/songforprism-acb-finder-csharp-win-x64.zip
 
-      - name: Create GitHub release
+      - name: Upload release archive
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >
-          gh release create ${{ github.ref_name }} artifacts/songforprism-acb-finder-csharp-win-x64.zip
+        run: |
+          $tag = "${{ github.event.release.tag_name || inputs.tag }}"
+          gh release upload $tag artifacts/songforprism-acb-finder-csharp-win-x64.zip `
           --repo ${{ github.repository }}
-          --title "${{ github.ref_name }}"
-          --generate-notes
+          --clobber
