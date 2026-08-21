@@ -34,7 +34,7 @@ Use this program only for personal resource inspection and backup. Do not use it
 8. Click **Extract AWB**. Detected AWB files are moved to `Current_Directory/process/YYYYMMDD/origin/awb`, and their HCA tracks are extracted to `Current_Directory/process/YYYYMMDD/origin/hca`.
 9. Convert the extracted `.hca` files to WAV with [foobar2000](https://www.foobar2000.org/) and the [vgmstream](https://vgmstream.org/) component. Using **Convert → Default** is recommended.
 10. Save or move the converted WAV files to `Current_Directory/process/YYYYMMDD/origin/wav`.
-11. Click **Categorize WAV** *(optional)* to sort WAV files into folders named after characters found in their filenames. Files without a matching character name are moved to `etc`.
+11. Click **Categorize WAV** *(optional)* to sort top-level WAV files into `bgm`, `cs`, `se`, `scenario`, character-name, or `etc` folders. Matching is case-insensitive; precedence is `bgm_`, `CS_`, `se_`, `s<digits>_`, character name, then `etc`.
 
 ## Build the executable
 

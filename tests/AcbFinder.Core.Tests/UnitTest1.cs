@@ -250,6 +250,88 @@ public class CategorizeServiceTests : IDisposable
         Assert.True(File.Exists(Path.Combine(WavDir, "etc", "unknown_voice.wav")));
     }
 
+    [Theory]
+    [InlineData("__1#504 (rustle_fabric_dynamic).wav")]
+    [InlineData("048_Kamism.wav")]
+    [InlineData("132_MeiMei.wav")]
+    [InlineData("101_HanaMK.wav")]
+    public async Task CharacterNameEmbeddedInAnAsciiWord_GoesToEtc(string fileName)
+    {
+        File.WriteAllText(Path.Combine(WavDir, fileName), "x");
+
+        await CategorizeService.RunAsync(_root);
+
+        Assert.True(File.Exists(Path.Combine(WavDir, "etc", fileName)));
+    }
+
+    [Theory]
+    [InlineData("132_MeiMei_26luca.wav", "luca")]
+    [InlineData("101_HanaMK_28haruki.wav", "haruki")]
+    [InlineData("146_Voyger_84yayoi.wav", "yayoi")]
+    [InlineData("voice_02hiorir.wav", "hiori")]
+    [InlineData("voice_12rinzer.wav", "rinze")]
+    public async Task StrongSpeakerMarker_GoesToMappedCharacter(string fileName, string character)
+    {
+        File.WriteAllText(Path.Combine(WavDir, fileName), "x");
+
+        await CategorizeService.RunAsync(_root);
+
+        Assert.True(File.Exists(Path.Combine(WavDir, character, fileName)));
+    }
+
+    [Fact]
+    public async Task StrongSpeakerMarker_OnlyMatchesSuppliedCharacters()
+    {
+        const string fileName = "voice_02hiorir.wav";
+        File.WriteAllText(Path.Combine(WavDir, fileName), "x");
+
+        await CategorizeService.RunAsync(_root, characters: ["mano"]);
+
+        Assert.True(File.Exists(Path.Combine(WavDir, "etc", fileName)));
+    }
+
+    [Fact]
+    public async Task FallbackCharacterTokens_PreserveSuppliedListOrder()
+    {
+        const string fileName = "voice_hiori_hana.wav";
+        File.WriteAllText(Path.Combine(WavDir, fileName), "x");
+
+        await CategorizeService.RunAsync(_root, characters: ["hana", "hiori"]);
+
+        Assert.True(File.Exists(Path.Combine(WavDir, "hana", fileName)));
+    }
+
+    [Fact]
+    public async Task EmptyCharacterEntry_IsIgnoredDuringFallbackMatching()
+    {
+        const string fileName = "voice_.wav";
+        File.WriteAllText(Path.Combine(WavDir, fileName), "x");
+
+        await CategorizeService.RunAsync(_root, characters: ["", "hiori"]);
+
+        Assert.True(File.Exists(Path.Combine(WavDir, "etc", fileName)));
+    }
+
+    [Theory]
+    [InlineData("bgm_home.wav", "bgm")]
+    [InlineData("BGM_home.wav", "bgm")]
+    [InlineData("CS_s01_01010000.wav", "cs")]
+    [InlineData("cs_s01_01010000.wav", "cs")]
+    [InlineData("se_click.wav", "se")]
+    [InlineData("SE_click.wav", "se")]
+    [InlineData("s01_01010000_00.wav", "scenario")]
+    [InlineData("S01_01010000_00.wav", "scenario")]
+    [InlineData("CS_mano_01.wav", "cs")]
+    [InlineData("sound_unknown.wav", "etc")]
+    public async Task PrefixCategorizedWav_GoesToExpectedFolder(string fileName, string category)
+    {
+        File.WriteAllText(Path.Combine(WavDir, fileName), "x");
+
+        await CategorizeService.RunAsync(_root);
+
+        Assert.True(File.Exists(Path.Combine(WavDir, category, fileName)));
+    }
+
     [Fact]
     public async Task MissingWavDir_LogsAndReturns()
     {
