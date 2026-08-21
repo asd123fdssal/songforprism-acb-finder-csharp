@@ -3,8 +3,8 @@ using System.Text.RegularExpressions;
 namespace AcbFinder.Core;
 
 /// <summary>
-/// Sorts origin/wav/*.wav into case-insensitive generic prefix categories (bgm, cs,
-/// se, and scenario) before character-name matching; unmatched files land in "etc".
+/// Sorts origin/wav/*.wav into generic prefix or character categories, with scenario
+/// files further split into character or "etc" subfolders.
 /// </summary>
 public static class CategorizeService
 {
@@ -72,9 +72,12 @@ public static class CategorizeService
         characters ??= DefaultCharacters;
 
         var wavDir = Path.Combine(originDir, "wav");
+        var scenarioDir = Path.Combine(wavDir, "scenario");
         var files = Directory.Exists(wavDir)
             ? Directory.EnumerateFiles(wavDir, "*.wav", SearchOption.TopDirectoryOnly).ToList()
             : [];
+        if (Directory.Exists(scenarioDir))
+            files.AddRange(Directory.EnumerateFiles(scenarioDir, "*.wav", SearchOption.TopDirectoryOnly));
 
         if (files.Count == 0)
         {
@@ -92,7 +95,10 @@ public static class CategorizeService
             try
             {
                 var fileName = Path.GetFileName(file);
-                var destDir = Path.Combine(wavDir, GetDestinationCategory(fileName, characters));
+                var category = string.Equals(Path.GetDirectoryName(file), scenarioDir, StringComparison.OrdinalIgnoreCase)
+                    ? Path.Combine("scenario", GetCharacterCategory(fileName, characters))
+                    : GetDestinationCategory(fileName, characters);
+                var destDir = Path.Combine(wavDir, category);
                 Directory.CreateDirectory(destDir);
                 File.Move(file, Path.Combine(destDir, fileName), overwrite: true);
             }
@@ -117,8 +123,13 @@ public static class CategorizeService
         if (fileName.StartsWith("se_", StringComparison.OrdinalIgnoreCase))
             return "se";
         if (ScenarioPrefix.IsMatch(fileName))
-            return "scenario";
+            return Path.Combine("scenario", GetCharacterCategory(fileName, characters));
 
+        return GetCharacterCategory(fileName, characters);
+    }
+
+    private static string GetCharacterCategory(string fileName, IReadOnlyList<string> characters)
+    {
         foreach (Match marker in StrongSpeakerMarker.Matches(fileName))
         {
             if (!CharacterNamesById.TryGetValue(marker.Groups["id"].Value, out var mappedCharacter) ||

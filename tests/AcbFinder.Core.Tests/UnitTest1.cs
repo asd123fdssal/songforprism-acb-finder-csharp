@@ -313,14 +313,39 @@ public class CategorizeServiceTests : IDisposable
     }
 
     [Theory]
+    [InlineData("s01_01010000_00#1 (s01_01010000_00_0030_01mano).wav", "mano")]
+    [InlineData("S01_01010000_00#6 (s01_01010000_00_0060_02hiorir).wav", "hiori")]
+    public async Task ScenarioWav_GoesToNestedCharacterFolder(string fileName, string character)
+    {
+        File.WriteAllText(Path.Combine(WavDir, fileName), "x");
+
+        await CategorizeService.RunAsync(_root);
+
+        Assert.True(File.Exists(Path.Combine(WavDir, "scenario", character, fileName)));
+    }
+
+    [Fact]
+    public async Task ExistingScenarioWav_IsRecategorized()
+    {
+        const string fileName = "voice_02hiorir.wav";
+        var scenarioDir = Path.Combine(WavDir, "scenario");
+        Directory.CreateDirectory(scenarioDir);
+        File.WriteAllText(Path.Combine(scenarioDir, fileName), "x");
+
+        await CategorizeService.RunAsync(_root);
+
+        Assert.True(File.Exists(Path.Combine(scenarioDir, "hiori", fileName)));
+    }
+
+    [Theory]
     [InlineData("bgm_home.wav", "bgm")]
     [InlineData("BGM_home.wav", "bgm")]
     [InlineData("CS_s01_01010000.wav", "cs")]
     [InlineData("cs_s01_01010000.wav", "cs")]
     [InlineData("se_click.wav", "se")]
     [InlineData("SE_click.wav", "se")]
-    [InlineData("s01_01010000_00.wav", "scenario")]
-    [InlineData("S01_01010000_00.wav", "scenario")]
+    [InlineData("s01_01010000_00.wav", "scenario/etc")]
+    [InlineData("S01_01010000_00.wav", "scenario/etc")]
     [InlineData("CS_mano_01.wav", "cs")]
     [InlineData("sound_unknown.wav", "etc")]
     public async Task PrefixCategorizedWav_GoesToExpectedFolder(string fileName, string category)
