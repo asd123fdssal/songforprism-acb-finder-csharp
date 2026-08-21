@@ -14,10 +14,53 @@ public static class CategorizeService
         "kaho", "chiyoko", "juri", "rinze", "natsuha", "amana", "tenka", "chiyuki",
         "asahi", "fuyuko", "mei", "toru", "madoka", "koito", "hinana", "nichika",
         "mikoto", "luca", "hana", "haruki", "haruka", "chihaya", "miki", "yukiho",
-        "ritsuko", "azusa", "iori", "makoto", "ami", "mami", "takane", "hibiki",
+        "ritsuko", "azusa", "iori", "yayoi", "makoto", "ami", "mami", "takane", "hibiki",
     ];
 
     private static readonly Regex ScenarioPrefix = new(@"^s\d+_", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+    private static readonly Regex StrongSpeakerMarker = new(
+        @"_(?<id>\d{2})(?<label>[A-Za-z]+)",
+        RegexOptions.CultureInvariant);
+
+    private static readonly IReadOnlyDictionary<string, string> CharacterNamesById =
+        new Dictionary<string, string>
+        {
+            ["01"] = "mano",
+            ["02"] = "hiori",
+            ["03"] = "meguru",
+            ["04"] = "kogane",
+            ["05"] = "mamimi",
+            ["06"] = "sakuya",
+            ["07"] = "yuika",
+            ["08"] = "kiriko",
+            ["09"] = "kaho",
+            ["10"] = "chiyoko",
+            ["11"] = "juri",
+            ["12"] = "rinze",
+            ["13"] = "natsuha",
+            ["14"] = "amana",
+            ["15"] = "tenka",
+            ["16"] = "chiyuki",
+            ["17"] = "asahi",
+            ["18"] = "fuyuko",
+            ["19"] = "mei",
+            ["20"] = "toru",
+            ["21"] = "madoka",
+            ["22"] = "koito",
+            ["23"] = "hinana",
+            ["24"] = "nichika",
+            ["25"] = "mikoto",
+            ["26"] = "luca",
+            ["27"] = "hana",
+            ["28"] = "haruki",
+            ["83"] = "iori",
+            ["84"] = "yayoi",
+            ["85"] = "miki",
+            ["86"] = "chihaya",
+            ["87"] = "takane",
+            ["88"] = "makoto",
+            ["89"] = "haruka",
+        };
 
     public static Task RunAsync(
         string originDir,
@@ -76,7 +119,24 @@ public static class CategorizeService
         if (ScenarioPrefix.IsMatch(fileName))
             return "scenario";
 
-        return characters.FirstOrDefault(
-            c => fileName.Contains(c, StringComparison.OrdinalIgnoreCase)) ?? "etc";
+        foreach (Match marker in StrongSpeakerMarker.Matches(fileName))
+        {
+            if (!CharacterNamesById.TryGetValue(marker.Groups["id"].Value, out var mappedCharacter) ||
+                !marker.Groups["label"].Value.StartsWith(mappedCharacter, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var suppliedCharacter = characters.FirstOrDefault(
+                character => string.Equals(character, mappedCharacter, StringComparison.OrdinalIgnoreCase));
+            if (suppliedCharacter is not null)
+                return suppliedCharacter;
+        }
+
+        return characters.FirstOrDefault(character =>
+            Regex.IsMatch(
+                fileName,
+                $@"(?<![A-Za-z]){Regex.Escape(character)}(?![A-Za-z])",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)) ?? "etc";
     }
 }
