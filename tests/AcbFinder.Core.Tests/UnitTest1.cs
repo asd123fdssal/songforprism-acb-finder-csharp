@@ -250,6 +250,26 @@ public class CategorizeServiceTests : IDisposable
         Assert.True(File.Exists(Path.Combine(WavDir, "etc", "unknown_voice.wav")));
     }
 
+    [Theory]
+    [InlineData("bgm_home.wav", "bgm")]
+    [InlineData("BGM_home.wav", "bgm")]
+    [InlineData("CS_s01_01010000.wav", "cs")]
+    [InlineData("cs_s01_01010000.wav", "cs")]
+    [InlineData("se_click.wav", "se")]
+    [InlineData("SE_click.wav", "se")]
+    [InlineData("s01_01010000_00.wav", "scenario")]
+    [InlineData("S01_01010000_00.wav", "scenario")]
+    [InlineData("CS_mano_01.wav", "cs")]
+    [InlineData("sound_unknown.wav", "etc")]
+    public async Task PrefixCategorizedWav_GoesToExpectedFolder(string fileName, string category)
+    {
+        File.WriteAllText(Path.Combine(WavDir, fileName), "x");
+
+        await CategorizeService.RunAsync(_root);
+
+        Assert.True(File.Exists(Path.Combine(WavDir, category, fileName)));
+    }
+
     [Fact]
     public async Task MissingWavDir_LogsAndReturns()
     {

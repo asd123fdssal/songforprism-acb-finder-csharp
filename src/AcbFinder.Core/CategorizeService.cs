@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace AcbFinder.Core;
 
 /// <summary>
@@ -14,6 +16,8 @@ public static class CategorizeService
         "mikoto", "luca", "hana", "haruki", "haruka", "chihaya", "miki", "yukiho",
         "ritsuko", "azusa", "iori", "makoto", "ami", "mami", "takane", "hibiki",
     ];
+
+    private static readonly Regex ScenarioPrefix = new(@"^s\d+_", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
     public static Task RunAsync(
         string originDir,
@@ -45,9 +49,7 @@ public static class CategorizeService
             try
             {
                 var fileName = Path.GetFileName(file);
-                var character = characters.FirstOrDefault(
-                    c => fileName.Contains(c, StringComparison.OrdinalIgnoreCase));
-                var destDir = Path.Combine(wavDir, character ?? "etc");
+                var destDir = Path.Combine(wavDir, GetDestinationCategory(fileName, characters));
                 Directory.CreateDirectory(destDir);
                 File.Move(file, Path.Combine(destDir, fileName), overwrite: true);
             }
@@ -61,5 +63,20 @@ public static class CategorizeService
         }
 
         return Task.CompletedTask;
+    }
+
+    private static string GetDestinationCategory(string fileName, IReadOnlyList<string> characters)
+    {
+        if (fileName.StartsWith("bgm_", StringComparison.OrdinalIgnoreCase))
+            return "bgm";
+        if (fileName.StartsWith("CS_", StringComparison.OrdinalIgnoreCase))
+            return "cs";
+        if (fileName.StartsWith("se_", StringComparison.OrdinalIgnoreCase))
+            return "se";
+        if (ScenarioPrefix.IsMatch(fileName))
+            return "scenario";
+
+        return characters.FirstOrDefault(
+            c => fileName.Contains(c, StringComparison.OrdinalIgnoreCase)) ?? "etc";
     }
 }
