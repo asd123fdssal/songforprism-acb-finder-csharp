@@ -3,8 +3,8 @@ using System.Text.RegularExpressions;
 namespace AcbFinder.Core;
 
 /// <summary>
-/// Sorts origin/wav/*.wav into per-character subfolders by case-insensitive substring
-/// match on the file name; files that match no known character land in "etc".
+/// Sorts origin/wav/*.wav into case-insensitive generic prefix categories (bgm, cs,
+/// se, and scenario) before character-name matching; unmatched files land in "etc".
 /// </summary>
 public static class CategorizeService
 {
