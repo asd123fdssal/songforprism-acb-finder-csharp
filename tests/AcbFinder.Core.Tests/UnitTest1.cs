@@ -301,6 +301,17 @@ public class CategorizeServiceTests : IDisposable
         Assert.True(File.Exists(Path.Combine(WavDir, "hana", fileName)));
     }
 
+    [Fact]
+    public async Task EmptyCharacterEntry_IsIgnoredDuringFallbackMatching()
+    {
+        const string fileName = "voice_.wav";
+        File.WriteAllText(Path.Combine(WavDir, fileName), "x");
+
+        await CategorizeService.RunAsync(_root, characters: ["", "hiori"]);
+
+        Assert.True(File.Exists(Path.Combine(WavDir, "etc", fileName)));
+    }
+
     [Theory]
     [InlineData("bgm_home.wav", "bgm")]
     [InlineData("BGM_home.wav", "bgm")]

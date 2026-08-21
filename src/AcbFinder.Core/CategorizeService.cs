@@ -133,10 +133,32 @@ public static class CategorizeService
                 return suppliedCharacter;
         }
 
-        return characters.FirstOrDefault(character =>
-            Regex.IsMatch(
-                fileName,
-                $@"(?<![A-Za-z]){Regex.Escape(character)}(?![A-Za-z])",
-                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)) ?? "etc";
+        return characters.FirstOrDefault(character => ContainsCharacterToken(fileName, character)) ?? "etc";
     }
+
+    private static bool ContainsCharacterToken(string fileName, string character)
+    {
+        if (string.IsNullOrEmpty(character))
+            return false;
+
+        var searchStart = 0;
+        while (true)
+        {
+            var index = fileName.IndexOf(character, searchStart, StringComparison.OrdinalIgnoreCase);
+            if (index < 0)
+                return false;
+
+            var afterIndex = index + character.Length;
+            if ((index == 0 || !IsAsciiLetter(fileName[index - 1])) &&
+                (afterIndex == fileName.Length || !IsAsciiLetter(fileName[afterIndex])))
+            {
+                return true;
+            }
+
+            searchStart = index + 1;
+        }
+    }
+
+    private static bool IsAsciiLetter(char value) =>
+        value is >= 'A' and <= 'Z' or >= 'a' and <= 'z';
 }
