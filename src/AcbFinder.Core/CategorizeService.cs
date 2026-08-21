@@ -11,7 +11,8 @@ public static class CategorizeService
         "mano", "hiori", "meguru", "kogane", "mamimi", "sakuya", "yuika", "kiriko",
         "kaho", "chiyoko", "juri", "rinze", "natsuha", "amana", "tenka", "chiyuki",
         "asahi", "fuyuko", "mei", "toru", "madoka", "koito", "hinana", "nichika",
-        "mikoto", "luca", "hana", "haruki",
+        "mikoto", "luca", "hana", "haruki", "haruka", "chihaya", "miki", "yukiho",
+        "ritsuko", "azusa", "iori", "makoto", "ami", "mami", "takane", "hibiki",
     ];
 
     public static Task RunAsync(
